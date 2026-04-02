@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  stellar-watcher:
+    image: docker.io/stellar/quickstart:testing
+    container_name: stellar-watcher
+    restart: unless-stopped
+    ports:
+      - "8000:8000"    # Horizon API (Sua porta de entrada)
+      - "11625:11625"  # P2P Protocol (Core talk)
+      - "11626:11626"  # Core Info (HTTP)
+      - "127.0.0.1:5432:5432"
+    environment:
+      - NETWORK=TESTNET
+      - ENABLE_HAYSTACK=false
+      - NODE_IS_VALIDATOR=false
+      - POSTGRES_PASSWORD=stellar
+      - KNOWN_PEERS=core-testnet1.stellar.org:11625,
+      core-testnet2.stellar.org:11625,
+      core-testnet3.stellar.org:11625
+    volumes:
+      # Dados do Banco e Configurações
+      - ./stellar_data:/opt/stellar
+      # Mapeamento de Logs para Monitoramento (Zabbix/Host)
+      - ./stellar_data/logs/stellar-core:/var/log/stellar-core
+      - ./stellar_data/logs/horizon:/var/log/horizon
+      - ./stellar_data/logs/postgresql:/var/log/postgresql
+      - ./stellar_data/logs/supervisor:/var/log/supervisor
+      - ./stellar_data/logs/nginx:/var/log/nginx
+    # Ativa CORE e HORIZON para ingestão de dados
+    command: ["--testnet", "--enable", "core,horizon"]
